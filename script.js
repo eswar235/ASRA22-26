@@ -292,44 +292,60 @@ async function downloadFile(url, filename) {
   const progressTxt = document.getElementById("uploadProgressText");
   const statusEl    = document.getElementById("uploadStatus");
 
-  let selectedFile = null;
+  let selectedFiles = [];
 
   function setStatus(msg, type) {
     statusEl.textContent = msg;
     statusEl.className   = "upload-status " + (type || "");
   }
 
-  function showPreview(file) {
-    selectedFile = file;
+  function validateFile(file) {
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) return false;
+    if (file.size > 50 * 1024 * 1024) return false;
+    return true;
+  }
+
+  function showPreviews(files) {
+    selectedFiles = files;
     preview.style.display = "flex";
+    preview.style.flexWrap = "wrap";
+    preview.style.gap = "8px";
     fields.style.display  = "flex";
     preview.innerHTML = "";
-    if (file.type.startsWith("image/")) {
-      const img = document.createElement("img");
-      img.src = URL.createObjectURL(file);
-      preview.appendChild(img);
-    } else {
-      const vid = document.createElement("video");
-      vid.src = URL.createObjectURL(file);
-      vid.controls = true;
-      preview.appendChild(vid);
-    }
+
+    files.forEach(file => {
+      const wrap = document.createElement("div");
+      wrap.style.cssText = "position:relative;border-radius:8px;overflow:hidden;width:100px;height:100px;flex-shrink:0;background:var(--surface2)";
+      if (file.type.startsWith("image/")) {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.style.cssText = "width:100%;height:100%;object-fit:cover";
+        wrap.appendChild(img);
+      } else {
+        const vid = document.createElement("video");
+        vid.src = URL.createObjectURL(file);
+        vid.style.cssText = "width:100%;height:100%;object-fit:cover";
+        wrap.appendChild(vid);
+        const badge = document.createElement("div");
+        badge.textContent = "▶";
+        badge.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;background:rgba(0,0,0,.3)";
+        wrap.appendChild(badge);
+      }
+      preview.appendChild(wrap);
+    });
+
+    // Show count badge
+    const badge = document.createElement("div");
+    badge.style.cssText = "width:100%;text-align:center;font-size:13px;color:var(--muted);margin-top:4px";
+    badge.textContent = `${files.length} file${files.length > 1 ? "s" : ""} selected`;
+    preview.appendChild(badge);
+
     dropZone.style.display = "none";
     setStatus("");
   }
 
-  function validateFile(file) {
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-      setStatus("❌ Only images and videos are allowed.", "error"); return false;
-    }
-    if (file.size > 50 * 1024 * 1024) {
-      setStatus("❌ File too large. Max 50MB.", "error"); return false;
-    }
-    return true;
-  }
-
   function resetUpload() {
-    selectedFile = null;
+    selectedFiles = [];
     preview.style.display = "none";
     fields.style.display  = "none";
     progressWrap.style.display = "none";
@@ -341,12 +357,19 @@ async function downloadFile(url, filename) {
     setStatus("");
   }
 
+  function processFiles(fileList) {
+    const valid = Array.from(fileList).filter(f => validateFile(f));
+    const invalid = fileList.length - valid.length;
+    if (valid.length === 0) { setStatus("❌ Only images/videos under 50MB allowed.", "error"); return; }
+    if (invalid > 0) setStatus(`⚠️ ${invalid} file(s) skipped (wrong type or too large).`, "error");
+    showPreviews(valid);
+  }
+
   browseBtn.addEventListener("click", () => fileInput.click());
-  dropZone.addEventListener("click",  (e) => { if (e.target !== browseBtn) fileInput.click(); });
+  dropZone.addEventListener("click", (e) => { if (e.target !== browseBtn) fileInput.click(); });
 
   fileInput.addEventListener("change", () => {
-    const file = fileInput.files[0];
-    if (file && validateFile(file)) showPreview(file);
+    if (fileInput.files.length) processFiles(fileInput.files);
   });
 
   dropZone.addEventListener("dragover",  (e) => { e.preventDefault(); dropZone.classList.add("drag-over"); });
@@ -354,14 +377,13 @@ async function downloadFile(url, filename) {
   dropZone.addEventListener("drop", (e) => {
     e.preventDefault();
     dropZone.classList.remove("drag-over");
-    const file = e.dataTransfer.files[0];
-    if (file && validateFile(file)) showPreview(file);
+    if (e.dataTransfer.files.length) processFiles(e.dataTransfer.files);
   });
 
   cancelBtn.addEventListener("click", resetUpload);
 
   uploadBtn.addEventListener("click", async () => {
-    if (!selectedFile) return;
+    if (!selectedFiles.length) return;
     const name    = document.getElementById("uploaderName").value.trim()  || "Anonymous";
     const caption = document.getElementById("uploadCaption").value.trim() || "";
 
@@ -370,56 +392,57 @@ async function downloadFile(url, filename) {
     progressWrap.style.display = "block";
     setStatus("");
 
-    // Upload to Cloudinary
-    const isVideo    = selectedFile.type.startsWith("video/");
-    const uploadUrl  = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${isVideo ? "video" : "image"}/upload`;
-    const formData   = new FormData();
-    formData.append("file", selectedFile);
-    formData.append("upload_preset", CLOUDINARY_PRESET);
+    let done = 0;
+    const total = selectedFiles.length;
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", uploadUrl);
+    for (const file of selectedFiles) {
+      const isVideo   = file.type.startsWith("video/");
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${isVideo ? "video" : "image"}/upload`;
+      const formData  = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", CLOUDINARY_PRESET);
 
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) {
-        const pct = Math.round((e.loaded / e.total) * 100);
-        progressBar.style.width = pct + "%";
-        progressTxt.textContent = `Uploading... ${pct}%`;
-      }
-    };
-
-    xhr.onload = async () => {
-      if (xhr.status === 200) {
-        const res  = JSON.parse(xhr.responseText);
-        const url  = res.secure_url;
-        const type = isVideo ? "video" : "image";
-        await addDoc(collection(db, "gallery"), {
-          url, type,
-          name: selectedFile.name,
-          caption, uploaderName: name,
-          timestamp: serverTimestamp()
+      try {
+        await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", uploadUrl);
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              const filePct  = (e.loaded / e.total);
+              const totalPct = Math.round(((done + filePct) / total) * 100);
+              progressBar.style.width = totalPct + "%";
+              progressTxt.textContent = `Uploading ${done + 1} of ${total}... ${totalPct}%`;
+            }
+          };
+          xhr.onload = async () => {
+            if (xhr.status === 200) {
+              const res = JSON.parse(xhr.responseText);
+              await addDoc(collection(db, "gallery"), {
+                url: res.secure_url,
+                type: isVideo ? "video" : "image",
+                name: file.name,
+                caption,
+                uploaderName: name,
+                timestamp: serverTimestamp()
+              });
+              done++;
+              resolve();
+            } else { reject(new Error("Upload failed")); }
+          };
+          xhr.onerror = () => reject(new Error("Network error"));
+          xhr.send(formData);
         });
-        setStatus("✅ Memory uploaded successfully! 🎉", "success");
-        progressTxt.textContent = "Upload complete!";
-        uploadBtn.disabled = false;
-        cancelBtn.disabled = false;
-        setTimeout(resetUpload, 2500);
-      } else {
-        setStatus("❌ Upload failed. Try again.", "error");
-        uploadBtn.disabled = false;
-        cancelBtn.disabled = false;
-        progressWrap.style.display = "none";
+      } catch (err) {
+        setStatus(`❌ Failed: ${file.name} — ${err.message}`, "error");
       }
-    };
+    }
 
-    xhr.onerror = () => {
-      setStatus("❌ Network error. Try again.", "error");
-      uploadBtn.disabled = false;
-      cancelBtn.disabled = false;
-      progressWrap.style.display = "none";
-    };
-
-    xhr.send(formData);
+    progressBar.style.width = "100%";
+    progressTxt.textContent = `Done! ${done} of ${total} uploaded.`;
+    setStatus(`✅ ${done} memory${done > 1 ? "ies" : "y"} uploaded successfully! 🎉`, "success");
+    uploadBtn.disabled = false;
+    cancelBtn.disabled = false;
+    setTimeout(resetUpload, 3000);
   });
 })();
 
