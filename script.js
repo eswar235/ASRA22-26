@@ -147,13 +147,38 @@ navLinks.querySelectorAll("a").forEach(a => a.addEventListener("click", () => na
   tick();
 })();
 
-// ── Music toggle ───────────────────────────────────────────────────────────────
+// ── Music toggle (YouTube iframe via postMessage) ──────────────────────────────
 (function initMusic() {
-  const btn   = document.getElementById("musicBtn");
-  const audio = document.getElementById("bgMusic");
+  const btn    = document.getElementById("musicBtn");
+  const iframe = document.getElementById("bgMusic");
+  let playing  = false;
+
+  // Load YouTube IFrame API
+  const tag = document.createElement("script");
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(tag);
+
+  let player = null;
+  window.onYouTubeIframeAPIReady = function() {
+    player = new YT.Player("bgMusic", {
+      events: {
+        onReady: () => {} // ready but not autoplay
+      }
+    });
+  };
+
   btn.addEventListener("click", () => {
-    if (audio.paused) { audio.play(); btn.classList.add("playing"); btn.textContent = "🎶"; }
-    else              { audio.pause(); btn.classList.remove("playing"); btn.textContent = "🎵"; }
+    if (!player) return;
+    if (playing) {
+      player.pauseVideo();
+      btn.classList.remove("playing");
+      btn.textContent = "�";
+    } else {
+      player.playVideo();
+      btn.classList.add("playing");
+      btn.textContent = "�";
+    }
+    playing = !playing;
   });
 })();
 
@@ -533,43 +558,60 @@ let fbImageItems = []; // { url, caption }
 
         item.innerHTML = `
           <img src="${data.url}" alt="${data.caption || data.name}" loading="lazy" />
+          <button class="gallery-menu-btn" data-action="menu" title="Options">⋮</button>
+          <div class="gallery-menu-dropdown" id="menu-${docSnap.id}">
+            <button class="gallery-menu-item" data-action="download">⬇ Download</button>
+            <button class="gallery-menu-item danger" data-action="delete">🗑 Delete</button>
+          </div>
           <div class="gallery-overlay">
-            ${data.uploaderName ? `<span class="gallery-uploader">📤 ${data.uploaderName}</span>` : ""}
+            ${data.uploaderName ? `<span class="gallery-uploader">� ${data.uploaderName}</span>` : ""}
             <span class="gallery-caption">${data.caption || data.name}</span>
-            <div class="gallery-actions">
-              <button class="gallery-action-btn" data-action="download">⬇ Download</button>
-              <button class="gallery-delete-btn" data-action="delete">🗑 Delete</button>
-            </div>
           </div>`;
         item.addEventListener("click", (e) => {
           if (e.target.dataset.action) return;
+          if (e.target.closest(".gallery-menu-dropdown")) return;
           openFirebaseImageLightbox(imgIndex);
         });
       } else {
         item.innerHTML = `
           <video src="${data.url}" muted preload="metadata"></video>
           <div class="video-play-badge">▶</div>
+          <button class="gallery-menu-btn" data-action="menu" title="Options">⋮</button>
+          <div class="gallery-menu-dropdown" id="menu-${docSnap.id}">
+            <button class="gallery-menu-item" data-action="download">⬇ Download</button>
+            <button class="gallery-menu-item danger" data-action="delete">🗑 Delete</button>
+          </div>
           <div class="gallery-overlay">
             ${data.uploaderName ? `<span class="gallery-uploader">📤 ${data.uploaderName}</span>` : ""}
             <span class="gallery-caption">${data.caption || data.name}</span>
-            <div class="gallery-actions">
-              <button class="gallery-action-btn" data-action="download">⬇ Download</button>
-              <button class="gallery-delete-btn" data-action="delete">🗑 Delete</button>
-            </div>
           </div>`;
         item.addEventListener("click", (e) => {
           if (e.target.dataset.action) return;
+          if (e.target.closest(".gallery-menu-dropdown")) return;
           openVideoModal(data.url, data.caption || data.name);
         });
       }
 
+      // 3-dot menu toggle
+      item.querySelector(".gallery-menu-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dropdown = item.querySelector(".gallery-menu-dropdown");
+        // Close all other open menus
+        document.querySelectorAll(".gallery-menu-dropdown.open").forEach(d => { if (d !== dropdown) d.classList.remove("open"); });
+        dropdown.classList.toggle("open");
+      });
+
+      // Download
       item.querySelector("[data-action='download']").addEventListener("click", (e) => {
         e.stopPropagation();
+        item.querySelector(".gallery-menu-dropdown").classList.remove("open");
         downloadFile(data.url, data.name || "download");
       });
 
+      // Delete
       item.querySelector("[data-action='delete']").addEventListener("click", async (e) => {
         e.stopPropagation();
+        item.querySelector(".gallery-menu-dropdown").classList.remove("open");
         if (!confirm("Delete this memory? This cannot be undone.")) return;
         try {
           await deleteDoc(doc(db, "gallery", docSnap.id));
@@ -584,6 +626,17 @@ let fbImageItems = []; // { url, caption }
     applyGalleryFilter(currentFilter);
   });
 })();
+
+// Close 3-dot menus when clicking outside
+document.addEventListener("click", () => {
+  document.querySelectorAll(".gallery-menu-dropdown.open").forEach(d => d.classList.remove("open"));
+});
+
+window.toggleStaticMenu = function(id) {
+  const menu = document.getElementById(id);
+  document.querySelectorAll(".gallery-menu-dropdown.open").forEach(d => { if (d !== menu) d.classList.remove("open"); });
+  menu.classList.toggle("open");
+};
 
 // ── Gallery filter tabs ────────────────────────────────────────────────────────
 let currentFilter = "all";

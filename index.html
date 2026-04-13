@@ -51,9 +51,10 @@
   </div>
   <div class="scroll-indicator"><div class="scroll-dot"></div><span>Scroll Down</span></div>
   <button id="musicBtn" class="music-btn" title="Toggle Music">🎵</button>
-  <audio id="bgMusic" loop>
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" type="audio/mpeg" />
-  </audio>
+  <!-- YouTube audio via iframe (hidden) -->
+  <iframe id="bgMusic" width="0" height="0" style="display:none"
+    src="https://www.youtube.com/embed/uK5LolHVZ0w?enablejsapi=1&loop=1&playlist=uK5LolHVZ0w&autoplay=0"
+    allow="autoplay" frameborder="0"></iframe>
 </section>
 
 <!-- ===== ABOUT ===== -->
@@ -123,39 +124,35 @@
     <div class="gallery-grid reveal-up" id="staticGallery">
       <div class="gallery-item" data-type="image" onclick="openLightbox(0)">
         <img src="https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM.jpeg" alt="Our Batch" loading="lazy" />
-        <div class="gallery-overlay">
-          <span class="gallery-caption">Avanthi's College — Our Batch ❤️</span>
-          <div class="gallery-actions">
-            <button class="gallery-action-btn" onclick="event.stopPropagation();downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM.jpeg','batch-photo-1.jpg')">⬇ Download</button>
-          </div>
+        <button class="gallery-menu-btn" onclick="event.stopPropagation();toggleStaticMenu('sm0')" title="Options">⋮</button>
+        <div class="gallery-menu-dropdown" id="sm0">
+          <button class="gallery-menu-item" onclick="event.stopPropagation();document.getElementById('sm0').classList.remove('open');downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM.jpeg','batch-photo-1.jpg')">⬇ Download</button>
         </div>
+        <div class="gallery-overlay"><span class="gallery-caption">Avanthi's College — Our Batch ❤️</span></div>
       </div>
       <div class="gallery-item" data-type="image" onclick="openLightbox(1)">
         <img src="https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM%20(1).jpeg" alt="Trip Vibes" loading="lazy" />
-        <div class="gallery-overlay">
-          <span class="gallery-caption">Trip Vibes 🔥</span>
-          <div class="gallery-actions">
-            <button class="gallery-action-btn" onclick="event.stopPropagation();downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM%20(1).jpeg','trip-vibes.jpg')">⬇ Download</button>
-          </div>
+        <button class="gallery-menu-btn" onclick="event.stopPropagation();toggleStaticMenu('sm1')" title="Options">⋮</button>
+        <div class="gallery-menu-dropdown" id="sm1">
+          <button class="gallery-menu-item" onclick="event.stopPropagation();document.getElementById('sm1').classList.remove('open');downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM%20(1).jpeg','trip-vibes.jpg')">⬇ Download</button>
         </div>
+        <div class="gallery-overlay"><span class="gallery-caption">Trip Vibes 🔥</span></div>
       </div>
       <div class="gallery-item" data-type="image" onclick="openLightbox(2)">
         <img src="https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM.jpeg" alt="Night Out" loading="lazy" />
-        <div class="gallery-overlay">
-          <span class="gallery-caption">Night Out 🌙</span>
-          <div class="gallery-actions">
-            <button class="gallery-action-btn" onclick="event.stopPropagation();downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM.jpeg','night-out.jpg')">⬇ Download</button>
-          </div>
+        <button class="gallery-menu-btn" onclick="event.stopPropagation();toggleStaticMenu('sm2')" title="Options">⋮</button>
+        <div class="gallery-menu-dropdown" id="sm2">
+          <button class="gallery-menu-item" onclick="event.stopPropagation();document.getElementById('sm2').classList.remove('open');downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM.jpeg','night-out.jpg')">⬇ Download</button>
         </div>
+        <div class="gallery-overlay"><span class="gallery-caption">Night Out 🌙</span></div>
       </div>
       <div class="gallery-item" data-type="image" onclick="openLightbox(3)">
         <img src="https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM%20(1).jpeg" alt="Campus Days" loading="lazy" />
-        <div class="gallery-overlay">
-          <span class="gallery-caption">Campus Days ☀️</span>
-          <div class="gallery-actions">
-            <button class="gallery-action-btn" onclick="event.stopPropagation();downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM%20(1).jpeg','campus-days.jpg')">⬇ Download</button>
-          </div>
+        <button class="gallery-menu-btn" onclick="event.stopPropagation();toggleStaticMenu('sm3')" title="Options">⋮</button>
+        <div class="gallery-menu-dropdown" id="sm3">
+          <button class="gallery-menu-item" onclick="event.stopPropagation();document.getElementById('sm3').classList.remove('open');downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM%20(1).jpeg','campus-days.jpg')">⬇ Download</button>
         </div>
+        <div class="gallery-overlay"><span class="gallery-caption">Campus Days ☀️</span></div>
       </div>
     </div>
 
