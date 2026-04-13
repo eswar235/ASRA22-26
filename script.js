@@ -2,7 +2,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+// Storage via Cloudinary (free, no credit card needed)
 
 // ── Firebase init ──────────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -15,7 +15,10 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
-const storage = getStorage(app);
+
+// ── Cloudinary config (free image/video hosting) ───────────────────────────────
+const CLOUDINARY_CLOUD = "dqgx7djig";
+const CLOUDINARY_PRESET = "asra_upload";
 
 // ── Student data ───────────────────────────────────────────────────────────────
 const students = [
@@ -361,38 +364,39 @@ async function downloadFile(url, filename) {
     if (!selectedFile) return;
     const name    = document.getElementById("uploaderName").value.trim()  || "Anonymous";
     const caption = document.getElementById("uploadCaption").value.trim() || "";
-    const ts      = Date.now();
-    const path    = `gallery/${ts}_${selectedFile.name}`;
-    const ref     = storageRef(storage, path);
-    const task    = uploadBytesResumable(ref, selectedFile);
 
     uploadBtn.disabled = true;
     cancelBtn.disabled = true;
     progressWrap.style.display = "block";
     setStatus("");
 
-    task.on("state_changed",
-      (snap) => {
-        const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+    // Upload to Cloudinary
+    const isVideo    = selectedFile.type.startsWith("video/");
+    const uploadUrl  = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${isVideo ? "video" : "image"}/upload`;
+    const formData   = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("upload_preset", CLOUDINARY_PRESET);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", uploadUrl);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const pct = Math.round((e.loaded / e.total) * 100);
         progressBar.style.width = pct + "%";
         progressTxt.textContent = `Uploading... ${pct}%`;
-      },
-      (err) => {
-        setStatus("❌ Upload failed: " + err.message, "error");
-        uploadBtn.disabled = false;
-        cancelBtn.disabled = false;
-        progressWrap.style.display = "none";
-      },
-      async () => {
-        const url  = await getDownloadURL(task.snapshot.ref);
-        const type = selectedFile.type.startsWith("image/") ? "image" : "video";
+      }
+    };
+
+    xhr.onload = async () => {
+      if (xhr.status === 200) {
+        const res  = JSON.parse(xhr.responseText);
+        const url  = res.secure_url;
+        const type = isVideo ? "video" : "image";
         await addDoc(collection(db, "gallery"), {
-          url,
-          type,
+          url, type,
           name: selectedFile.name,
-          caption,
-          uploaderName: name,
-          storagePath: path,
+          caption, uploaderName: name,
           timestamp: serverTimestamp()
         });
         setStatus("✅ Memory uploaded successfully! 🎉", "success");
@@ -400,8 +404,22 @@ async function downloadFile(url, filename) {
         uploadBtn.disabled = false;
         cancelBtn.disabled = false;
         setTimeout(resetUpload, 2500);
+      } else {
+        setStatus("❌ Upload failed. Try again.", "error");
+        uploadBtn.disabled = false;
+        cancelBtn.disabled = false;
+        progressWrap.style.display = "none";
       }
-    );
+    };
+
+    xhr.onerror = () => {
+      setStatus("❌ Network error. Try again.", "error");
+      uploadBtn.disabled = false;
+      cancelBtn.disabled = false;
+      progressWrap.style.display = "none";
+    };
+
+    xhr.send(formData);
   });
 })();
 
@@ -474,10 +492,6 @@ async function downloadFile(url, filename) {
         if (!confirm("Delete this memory? This cannot be undone.")) return;
         try {
           await deleteDoc(doc(db, "gallery", docSnap.id));
-          if (data.storagePath) {
-            const ref = storageRef(storage, data.storagePath);
-            await deleteObject(ref).catch(() => {});
-          }
         } catch (err) {
           alert("Delete failed: " + err.message);
         }
