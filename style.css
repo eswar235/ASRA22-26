@@ -220,9 +220,11 @@ ul{list-style:none}
 .lb-prev{left:20px}
 .lb-next{right:20px}
 .lb-nav:hover{background:var(--surface2)}
-.lb-footer{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center}
+.lb-footer{display:flex;flex-direction:column;align-items:center;gap:12px}
+.lb-footer-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 .lb-caption{color:var(--muted);font-size:14px;text-align:center}
-.lb-download{padding:8px 20px;font-size:13px}
+.lb-download,.lb-auto{padding:8px 20px;font-size:13px}
+.lb-auto.active{background:var(--grad);color:#fff;border-color:transparent}
 
 /* Video modal */
 .video-modal-box{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:16px;max-width:90vw}

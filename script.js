@@ -221,12 +221,14 @@ function openMemberModal(s, emoji) {
 // mode: "static" | "firebase"
 let lbMode  = "static";
 let lbIndex = 0;
-let fbLbIndexStatic = 0; // separate tracker for firebase mode
+let fbLbIndexStatic = 0;
+let lbAutoInterval = null;
 
 function openLightbox(index) {
   lbMode  = "static";
   lbIndex = index;
   renderLightbox();
+  stopAutoSlide();
   document.getElementById("lightbox").classList.add("active");
 }
 
@@ -262,11 +264,34 @@ function lbNextHandler() {
   renderLightbox();
 }
 
+function startAutoSlide() {
+  if (lbAutoInterval) return;
+  const btn = document.getElementById("lbAutoBtn");
+  btn.textContent = "⏸ Stop Slide";
+  btn.classList.add("active");
+  lbAutoInterval = setInterval(() => lbNextHandler(), 3000);
+}
+
+function stopAutoSlide() {
+  if (lbAutoInterval) { clearInterval(lbAutoInterval); lbAutoInterval = null; }
+  const btn = document.getElementById("lbAutoBtn");
+  if (btn) { btn.textContent = "▶ Auto Slide"; btn.classList.remove("active"); }
+}
+
 (function initLightbox() {
-  document.getElementById("lbClose").addEventListener("click",    () => document.getElementById("lightbox").classList.remove("active"));
-  document.getElementById("lbBackdrop").addEventListener("click", () => document.getElementById("lightbox").classList.remove("active"));
-  document.getElementById("lbPrev").addEventListener("click", lbPrevHandler);
-  document.getElementById("lbNext").addEventListener("click", lbNextHandler);
+  document.getElementById("lbClose").addEventListener("click", () => {
+    document.getElementById("lightbox").classList.remove("active");
+    stopAutoSlide();
+  });
+  document.getElementById("lbBackdrop").addEventListener("click", () => {
+    document.getElementById("lightbox").classList.remove("active");
+    stopAutoSlide();
+  });
+  document.getElementById("lbPrev").addEventListener("click", () => { stopAutoSlide(); lbPrevHandler(); });
+  document.getElementById("lbNext").addEventListener("click", () => { stopAutoSlide(); lbNextHandler(); });
+  document.getElementById("lbAutoBtn").addEventListener("click", () => {
+    lbAutoInterval ? stopAutoSlide() : startAutoSlide();
+  });
 })();
 
 // ── Video modal ────────────────────────────────────────────────────────────────
@@ -588,6 +613,7 @@ function openFirebaseImageLightbox(index) {
   lbMode = "firebase";
   fbLbIndexStatic = index;
   renderLightbox();
+  stopAutoSlide();
   document.getElementById("lightbox").classList.add("active");
 }
 
@@ -679,7 +705,7 @@ document.addEventListener("keydown", (e) => {
   const gradModal  = document.getElementById("gradModal");
 
   if (e.key === "Escape") {
-    if (lightbox.classList.contains("active"))    { lightbox.classList.remove("active"); }
+    if (lightbox.classList.contains("active"))    { lightbox.classList.remove("active"); stopAutoSlide(); }
     if (memberModal.classList.contains("active")) { memberModal.classList.remove("active"); }
     if (videoModal.classList.contains("active"))  { closeVideoModal(); }
     if (gradModal.classList.contains("active"))   { gradModal.classList.remove("active"); stopConfetti(); }
