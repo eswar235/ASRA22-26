@@ -6,12 +6,12 @@ import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, de
 
 // ── Firebase init ──────────────────────────────────────────────────────────────
 const firebaseConfig = {
-  apiKey: "AIzaSyCv4xGhEgjIbWkhq6E4qtaOlfHfNH6jkrQ",
-  authDomain: "asra-2226.firebaseapp.com",
-  projectId: "asra-2226",
-  storageBucket: "asra-2226.firebasestorage.app",
-  messagingSenderId: "608619248067",
-  appId: "1:608619248067:web:89173ca739612d15d12576"
+  apiKey: "AIzaSyDMpMSNF8n6jWG78q96sgDGIRNGb2iEOrs",
+  authDomain: "asra-2226-a99ff.firebaseapp.com",
+  projectId: "asra-2226-a99ff",
+  storageBucket: "asra-2226-a99ff.firebasestorage.app",
+  messagingSenderId: "664481130068",
+  appId: "1:664481130068:web:7180c08afc5809d4f1efc1"
 };
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
