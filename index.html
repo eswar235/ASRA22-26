@@ -16,13 +16,14 @@
   <div class="nav-inner">
     <div class="nav-brand">
       <span class="nav-logo">🎓</span>
-      <span class="nav-title">ASRA <span class="nav-year">22–26</span></span>
+      <span class="nav-title">ASRA <span class="gradient-text">22–26</span></span>
     </div>
     <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     <ul class="nav-links" id="navLinks">
       <li><a href="#about">About</a></li>
       <li><a href="#members">Batch</a></li>
       <li><a href="#gallery">Gallery</a></li>
+      <li><a href="#upload">Upload</a></li>
       <li><a href="#timeline">Journey</a></li>
       <li><a href="#memories">Memories</a></li>
       <li><a href="#farewell" class="nav-cta">Farewell ❤️</a></li>
@@ -41,21 +42,14 @@
   <div class="hero-overlay"></div>
   <div class="hero-content">
     <p class="hero-badge reveal-up">✨ Avanthi's Scientific Technological and Research Academy</p>
-    <h1 class="hero-heading reveal-up">
-      ASRA CSE <span class="gradient-text">2022–2026</span>
-    </h1>
-    <p class="hero-sub reveal-up">
-      <span id="typingText"></span><span class="cursor">|</span>
-    </p>
+    <h1 class="hero-heading reveal-up">ASRA CSE <span class="gradient-text">2022–2026</span><br/>Our Journey</h1>
+    <p class="hero-sub reveal-up"><span id="typingText"></span><span class="cursor">|</span></p>
     <div class="hero-btns reveal-up">
-      <a href="#members" class="btn btn-primary">Explore Our Memories</a>
-      <a href="#gallery" class="btn btn-ghost">View Gallery 📸</a>
+      <a href="#gallery" class="btn btn-primary">Explore Memories 📸</a>
+      <a href="#upload" class="btn btn-ghost">Upload Your Memory ⬆️</a>
     </div>
   </div>
-  <div class="scroll-indicator">
-    <div class="scroll-dot"></div>
-    <span>Scroll Down</span>
-  </div>
+  <div class="scroll-indicator"><div class="scroll-dot"></div><span>Scroll Down</span></div>
   <button id="musicBtn" class="music-btn" title="Toggle Music">🎵</button>
   <audio id="bgMusic" loop>
     <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" type="audio/mpeg" />
@@ -71,7 +65,7 @@
         <h2 class="section-title">Four Years.<br/><span class="gradient-text">One Family.</span></h2>
         <p>It started with nervous smiles and unfamiliar faces in the corridors of Avanthi's. We were strangers from different towns, different backgrounds — united only by a branch code and a shared dream.</p>
         <p>Through sleepless nights before exams, chaotic lab sessions, spontaneous trips, and 3AM chai conversations — we didn't just earn a degree. We built something far more precious: <strong>each other.</strong></p>
-        <p>ASRA CSE 2022–2026 isn't just a batch. It's a chapter of life we'll carry forever — in every city we move to, every job we take, every milestone we celebrate.</p>
+        <p>ASRA CSE 2022–2026 isn't just a batch. It's a chapter of life we'll carry forever.</p>
         <div class="about-stats">
           <div class="stat-item"><span class="stat-num">64</span><span class="stat-label">Students</span></div>
           <div class="stat-item"><span class="stat-num">4</span><span class="stat-label">Years</span></div>
@@ -104,9 +98,7 @@
       <div class="member-count" id="memberCount">64 students</div>
     </div>
     <div class="members-grid" id="membersGrid"></div>
-    <div class="no-results" id="noResults" style="display:none">
-      <p>🔍 No students found</p>
-    </div>
+    <div class="no-results" id="noResults" style="display:none"><p>🔍 No students found</p></div>
   </div>
 </section>
 
@@ -116,31 +108,105 @@
     <div class="section-header-center reveal-up">
       <span class="section-badge">Captured Moments</span>
       <h2 class="section-title">Our <span class="gradient-text">Gallery</span></h2>
-      <p class="section-desc">Every photo tells a story we never want to forget</p>
+      <p class="section-desc">Every photo and video tells a story we never want to forget</p>
     </div>
-    <div class="gallery-grid reveal-up" id="galleryGrid">
-      <div class="gallery-item" onclick="openLightbox(0)">
+
+    <!-- Filter tabs -->
+    <div class="gallery-filters reveal-up" id="galleryFilters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="image">Photos 📷</button>
+      <button class="filter-btn" data-filter="video">Videos 🎬</button>
+    </div>
+
+    <!-- Static batch photos -->
+    <p class="gallery-label reveal-up">📌 Batch Photos</p>
+    <div class="gallery-grid reveal-up" id="staticGallery">
+      <div class="gallery-item" data-type="image" onclick="openLightbox(0)">
         <img src="https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM.jpeg" alt="Our Batch" loading="lazy" />
-        <div class="gallery-overlay"><span>Avanthi's College — Our Batch ❤️</span></div>
+        <div class="gallery-overlay">
+          <span class="gallery-caption">Avanthi's College — Our Batch ❤️</span>
+          <div class="gallery-actions">
+            <button class="gallery-action-btn" onclick="event.stopPropagation();downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM.jpeg','batch-photo-1.jpg')">⬇ Download</button>
+          </div>
+        </div>
       </div>
-      <div class="gallery-item" onclick="openLightbox(1)">
+      <div class="gallery-item" data-type="image" onclick="openLightbox(1)">
         <img src="https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM%20(1).jpeg" alt="Trip Vibes" loading="lazy" />
-        <div class="gallery-overlay"><span>Trip Vibes 🔥</span></div>
+        <div class="gallery-overlay">
+          <span class="gallery-caption">Trip Vibes 🔥</span>
+          <div class="gallery-actions">
+            <button class="gallery-action-btn" onclick="event.stopPropagation();downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM%20(1).jpeg','trip-vibes.jpg')">⬇ Download</button>
+          </div>
+        </div>
       </div>
-      <div class="gallery-item" onclick="openLightbox(2)">
+      <div class="gallery-item" data-type="image" onclick="openLightbox(2)">
         <img src="https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM.jpeg" alt="Night Out" loading="lazy" />
-        <div class="gallery-overlay"><span>Night Out 🌙</span></div>
+        <div class="gallery-overlay">
+          <span class="gallery-caption">Night Out 🌙</span>
+          <div class="gallery-actions">
+            <button class="gallery-action-btn" onclick="event.stopPropagation();downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM.jpeg','night-out.jpg')">⬇ Download</button>
+          </div>
+        </div>
       </div>
-      <div class="gallery-item" onclick="openLightbox(3)">
+      <div class="gallery-item" data-type="image" onclick="openLightbox(3)">
         <img src="https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM%20(1).jpeg" alt="Campus Days" loading="lazy" />
-        <div class="gallery-overlay"><span>Campus Days ☀️</span></div>
+        <div class="gallery-overlay">
+          <span class="gallery-caption">Campus Days ☀️</span>
+          <div class="gallery-actions">
+            <button class="gallery-action-btn" onclick="event.stopPropagation();downloadFile('https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM%20(1).jpeg','campus-days.jpg')">⬇ Download</button>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- Firebase uploaded media -->
+    <p class="gallery-label reveal-up" style="margin-top:48px">🔥 Shared by Batch Members</p>
+    <div class="gallery-grid" id="firebaseGallery"></div>
+    <div class="gallery-empty" id="galleryEmpty">
+      <p>🌟 No uploads yet — be the first to share a memory!</p>
+    </div>
+    <div class="gallery-loading" id="galleryLoading">
+      <div class="spinner"></div><p>Loading memories...</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== UPLOAD ===== -->
+<section id="upload" class="section section-dark">
+  <div class="container">
+    <div class="section-header-center reveal-up">
+      <span class="section-badge">Share Your Memory</span>
+      <h2 class="section-title">Upload a <span class="gradient-text">Memory</span></h2>
+      <p class="section-desc">Photos and videos — max 50MB each</p>
+    </div>
+    <div class="upload-card glass reveal-up">
+      <div class="upload-drop-zone" id="dropZone">
+        <div class="upload-drop-icon">📁</div>
+        <p class="upload-drop-title">Drag & drop your photo or video here</p>
+        <p class="upload-drop-sub">or click to browse</p>
+        <input type="file" id="fileInput" accept="image/*,video/*" hidden />
+        <button class="btn btn-primary" id="browseBtn">Browse Files</button>
+      </div>
+      <div class="upload-preview" id="uploadPreview" style="display:none"></div>
+      <div class="upload-fields" id="uploadFields" style="display:none">
+        <input type="text" id="uploaderName" placeholder="Your name (optional)" class="upload-input" maxlength="50" />
+        <input type="text" id="uploadCaption" placeholder="Caption / memory description (optional)" class="upload-input" maxlength="120" />
+        <button class="btn btn-primary btn-full" id="uploadBtn">Upload Memory 🚀</button>
+        <button class="btn btn-ghost btn-full" id="cancelUploadBtn">Cancel</button>
+      </div>
+      <div class="upload-progress-wrap" id="uploadProgressWrap" style="display:none">
+        <div class="upload-progress-bar-bg">
+          <div class="upload-progress-bar" id="uploadProgressBar"></div>
+        </div>
+        <p id="uploadProgressText">Uploading... 0%</p>
+      </div>
+      <div class="upload-status" id="uploadStatus"></div>
     </div>
   </div>
 </section>
 
 <!-- ===== TIMELINE ===== -->
-<section id="timeline" class="section section-dark">
+<section id="timeline" class="section">
   <div class="container">
     <div class="section-header-center reveal-up">
       <span class="section-badge">Our Journey</span>
@@ -152,7 +218,7 @@
         <div class="timeline-card">
           <span class="timeline-year">2022</span>
           <h3>The Beginning</h3>
-          <p>New city. New faces. Hostel rooms that smelled like instant noodles and anxiety. We had no idea what we were doing — and that was the best part. 64 strangers walked into Avanthi's and a family was born.</p>
+          <p>New city. New faces. Hostel rooms that smelled like instant noodles and anxiety. 64 strangers walked into Avanthi's and a family was born.</p>
         </div>
       </div>
       <div class="timeline-item reveal-right">
@@ -160,7 +226,7 @@
         <div class="timeline-card">
           <span class="timeline-year">2023</span>
           <h3>Friendship Grows</h3>
-          <p>Lab sessions turned into late-night study groups. Canteen breaks turned into life conversations. We stopped being classmates and started being friends — the kind that feel like home.</p>
+          <p>Lab sessions turned into late-night study groups. Canteen breaks turned into life conversations. We stopped being classmates and started being friends.</p>
         </div>
       </div>
       <div class="timeline-item reveal-left">
@@ -168,7 +234,7 @@
         <div class="timeline-card">
           <span class="timeline-year">2024</span>
           <h3>Strong Bonds</h3>
-          <p>Hackathons, college fests, trips, and shared dreams. We built projects together, failed together, celebrated together. The bond became unbreakable. This was our golden year.</p>
+          <p>Hackathons, college fests, trips, and shared dreams. We built projects together, failed together, celebrated together. The bond became unbreakable.</p>
         </div>
       </div>
       <div class="timeline-item reveal-right">
@@ -176,7 +242,7 @@
         <div class="timeline-card">
           <span class="timeline-year">2025</span>
           <h3>Placement Season</h3>
-          <p>The anxiety, the prep, the midnight calls — "I got it!" Placement season was chaos and triumph all at once. We cheered for each other louder than we cheered for ourselves.</p>
+          <p>The anxiety, the prep, the midnight calls — "I got it!" We cheered for each other louder than we cheered for ourselves.</p>
         </div>
       </div>
       <div class="timeline-item reveal-left">
@@ -184,57 +250,33 @@
         <div class="timeline-card">
           <span class="timeline-year">2026</span>
           <h3>Farewell</h3>
-          <p>We came as strangers. We leave as family. Four years of memories, laughter, tears, and growth. This isn't goodbye — it's see you on the other side. Always ASRA. Always family.</p>
+          <p>We came as strangers. We leave as family. This isn't goodbye — it's see you on the other side. Always ASRA. Always family.</p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===== MEMORIES / QUOTES ===== -->
-<section id="memories" class="section">
+<!-- ===== MEMORIES ===== -->
+<section id="memories" class="section section-dark">
   <div class="container">
     <div class="section-header-center reveal-up">
       <span class="section-badge">Forever Cherished</span>
       <h2 class="section-title">Our <span class="gradient-text">Memories</span></h2>
     </div>
     <div class="memories-grid reveal-up">
-      <div class="memory-card">
-        <div class="memory-icon">🎓</div>
-        <h3>First Day</h3>
-        <p>"New city. New faces. Hostel rooms that smelled like instant noodles and anxiety. We had no idea what we were doing — and that was the best part."</p>
-      </div>
-      <div class="memory-card">
-        <div class="memory-icon">💻</div>
-        <h3>Lab Sessions</h3>
-        <p>"Debugging at midnight. Segmentation faults. That one program that finally compiled after 3 hours. The joy was unmatched."</p>
-      </div>
-      <div class="memory-card">
-        <div class="memory-icon">🏆</div>
-        <h3>Hackathons</h3>
-        <p>"36 hours of no sleep, bad coffee, and brilliant ideas. We didn't always win — but we always built something real."</p>
-      </div>
-      <div class="memory-card">
-        <div class="memory-icon">🎉</div>
-        <h3>College Fests</h3>
-        <p>"We rehearsed for 2 days and performed like we'd been doing it for years. The stage was ours."</p>
-      </div>
-      <div class="memory-card">
-        <div class="memory-icon">☕</div>
-        <h3>3AM Chai</h3>
-        <p>"Late night chai sessions that turned into 3am life conversations. The canteen — our real classroom."</p>
-      </div>
-      <div class="memory-card">
-        <div class="memory-icon">🚀</div>
-        <h3>Placements</h3>
-        <p>"The anxiety, the prep, the calls at midnight — 'I got it!' Placement season was chaos and triumph all at once."</p>
-      </div>
+      <div class="memory-card"><div class="memory-icon">🎓</div><h3>First Day</h3><p>"New city. New faces. Hostel rooms that smelled like instant noodles and anxiety. We had no idea what we were doing — and that was the best part."</p></div>
+      <div class="memory-card"><div class="memory-icon">💻</div><h3>Lab Sessions</h3><p>"Debugging at midnight. Segmentation faults. That one program that finally compiled after 3 hours. The joy was unmatched."</p></div>
+      <div class="memory-card"><div class="memory-icon">🏆</div><h3>Hackathons</h3><p>"36 hours of no sleep, bad coffee, and brilliant ideas. We didn't always win — but we always built something real."</p></div>
+      <div class="memory-card"><div class="memory-icon">🎉</div><h3>College Fests</h3><p>"We rehearsed for 2 days and performed like we'd been doing it for years. The stage was ours."</p></div>
+      <div class="memory-card"><div class="memory-icon">☕</div><h3>3AM Chai</h3><p>"Late night chai sessions that turned into 3am life conversations. The canteen — our real classroom."</p></div>
+      <div class="memory-card"><div class="memory-icon">🚀</div><h3>Placements</h3><p>"The anxiety, the prep, the calls at midnight — 'I got it!' Placement season was chaos and triumph all at once."</p></div>
     </div>
   </div>
 </section>
 
-<!-- ===== FAREWELL / WOW SECTION ===== -->
-<section id="farewell" class="section section-dark farewell-section">
+<!-- ===== FAREWELL ===== -->
+<section id="farewell" class="section farewell-section">
   <div class="farewell-bg">
     <img src="https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM%20(1).jpeg" alt="Campus" />
     <div class="farewell-bg-overlay"></div>
@@ -243,7 +285,7 @@
     <div class="reveal-up">
       <span class="section-badge">2022 — 2026</span>
       <h2 class="farewell-quote">"We came as strangers,<br/><span class="gradient-text">we leave as family."</span></h2>
-      <p class="farewell-msg">To everyone who was part of this — thank you. For the late nights, the shared meals, the panic before exams, the celebrations after. We didn't just study together. We grew up together.</p>
+      <p class="farewell-msg">To everyone who was part of this — thank you. For the late nights, the shared meals, the panic before exams, the celebrations after.</p>
       <p class="farewell-sign">— ASRA Batch of 2026 ❤️</p>
       <button class="btn btn-primary btn-glow" id="graduationBtn">Open After Graduation 🎓</button>
     </div>
@@ -267,26 +309,39 @@
   </div>
 </footer>
 
-<!-- ===== STUDENT MODAL ===== -->
-<div id="studentModal" class="modal" role="dialog" aria-modal="true">
-  <div class="modal-backdrop" id="modalBackdrop"></div>
-  <div class="modal-box glass" id="modalBox"></div>
+<!-- ===== MEMBER MODAL ===== -->
+<div id="memberModal" class="modal">
+  <div class="modal-backdrop" id="memberModalBackdrop"></div>
+  <div class="modal-box glass" id="memberModalBox"></div>
 </div>
 
 <!-- ===== LIGHTBOX ===== -->
-<div id="lightbox" class="modal" role="dialog" aria-modal="true">
+<div id="lightbox" class="modal">
   <div class="modal-backdrop" id="lbBackdrop"></div>
   <div class="lightbox-box">
     <button class="lb-close" id="lbClose">✕</button>
     <button class="lb-nav lb-prev" id="lbPrev">‹</button>
     <div class="lb-content" id="lbContent"></div>
     <button class="lb-nav lb-next" id="lbNext">›</button>
-    <p class="lb-caption" id="lbCaption"></p>
+    <div class="lb-footer">
+      <p class="lb-caption" id="lbCaption"></p>
+      <button class="btn btn-ghost lb-download" id="lbDownload">⬇ Download</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIDEO MODAL ===== -->
+<div id="videoModal" class="modal">
+  <div class="modal-backdrop" id="videoModalBackdrop"></div>
+  <div class="video-modal-box">
+    <button class="lb-close" id="videoModalClose">✕</button>
+    <div id="videoModalContent"></div>
+    <p class="lb-caption" id="videoModalCaption"></p>
   </div>
 </div>
 
 <!-- ===== GRADUATION POPUP ===== -->
-<div id="gradModal" class="modal" role="dialog" aria-modal="true">
+<div id="gradModal" class="modal">
   <div class="modal-backdrop" id="gradBackdrop"></div>
   <div class="grad-box glass">
     <div class="grad-emoji">🎓</div>
@@ -298,9 +353,8 @@
   </div>
 </div>
 
-<!-- ===== CONFETTI CANVAS ===== -->
 <canvas id="confettiCanvas"></canvas>
 
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>

@@ -1,12 +1,23 @@
-/* ============================================================
-   ASRA CSE 2022–2026 — Main Script
-   ============================================================ */
+// ASRA CSE 2022-2026 — script.js (ES Module, Firebase v10)
 
-'use strict';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-// ============================================================
-// STUDENT DATA
-// ============================================================
+// ── Firebase init ──────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCv4xGhEgjIbWkhq6E4qtaOlfHfNH6jkrQ",
+  authDomain: "asra-2226.firebaseapp.com",
+  projectId: "asra-2226",
+  storageBucket: "asra-2226.firebasestorage.app",
+  messagingSenderId: "608619248067",
+  appId: "1:608619248067:web:89173ca739612d15d12576"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+const storage = getStorage(app);
+
+// ── Student data ───────────────────────────────────────────────────────────────
 const students = [
   { id: 1,  name: "ABHISHEK AKASH SURAWAR",        hallTicket: "22PT1A0501", tagline: "The one who always had a plan 📋" },
   { id: 2,  name: "AMBALLA VAMSHI",                hallTicket: "22PT1A0502", tagline: "Vibes only, no bad days 🌊" },
@@ -74,291 +85,547 @@ const students = [
   { id: 64, name: "GATTU PALLAVI",                 hallTicket: "23PT5A0503", tagline: "Pallavi — the melody of our batch 🎶" }
 ];
 
-const emojis = ['👨‍💻','👩‍💻','🧑‍💻','👨‍🎓','👩‍🎓','🧑‍🎓','🧑‍🏫','👨‍🔬','👩‍🔬','🧑‍🎨'];
-const getEmoji = id => emojis[id % emojis.length];
-
-// ============================================================
-// NAVBAR
-// ============================================================
-const navbar = document.getElementById('navbar');
-const navToggle = document.getElementById('navToggle');
-const navLinks = document.getElementById('navLinks');
-
-window.addEventListener('scroll', () => {
-  navbar.classList.toggle('scrolled', window.scrollY > 50);
-});
-
-navToggle.addEventListener('click', () => {
-  navLinks.classList.toggle('open');
-});
-
-navLinks.querySelectorAll('a').forEach(a => {
-  a.addEventListener('click', () => navLinks.classList.remove('open'));
-});
-
-// ============================================================
-// HERO SLIDESHOW
-// ============================================================
-const slides = document.querySelectorAll('.hero-slide');
-let currentSlide = 0;
-setInterval(() => {
-  slides[currentSlide].classList.remove('active');
-  currentSlide = (currentSlide + 1) % slides.length;
-  slides[currentSlide].classList.add('active');
-}, 4000);
-
-// ============================================================
-// TYPING ANIMATION
-// ============================================================
-const phrases = [
-  "Four years. One family. Infinite memories.",
-  "We came as strangers, we leave as legends.",
-  "Late nights, shared dreams, lifelong bonds.",
-  "Not just a batch — a brotherhood & sisterhood.",
-  "The journey ends. The story never does."
-];
-let phraseIdx = 0, charIdx = 0, deleting = false;
-const typingEl = document.getElementById('typingText');
-
-function type() {
-  const phrase = phrases[phraseIdx];
-  if (!deleting) {
-    typingEl.textContent = phrase.slice(0, ++charIdx);
-    if (charIdx === phrase.length) { deleting = true; setTimeout(type, 2200); return; }
-  } else {
-    typingEl.textContent = phrase.slice(0, --charIdx);
-    if (charIdx === 0) { deleting = false; phraseIdx = (phraseIdx + 1) % phrases.length; }
-  }
-  setTimeout(type, deleting ? 40 : 70);
-}
-type();
-
-// ============================================================
-// MUSIC
-// ============================================================
-const music = document.getElementById('bgMusic');
-const musicBtn = document.getElementById('musicBtn');
-let playing = false;
-musicBtn.addEventListener('click', () => {
-  if (playing) { music.pause(); musicBtn.classList.remove('playing'); }
-  else { music.play().catch(() => {}); musicBtn.classList.add('playing'); }
-  playing = !playing;
-});
-
-// ============================================================
-// SCROLL REVEAL
-// ============================================================
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('revealed'); revealObserver.unobserve(e.target); }
-  });
-}, { threshold: 0.15 });
-
-document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right').forEach(el => revealObserver.observe(el));
-
-// ============================================================
-// BATCH MEMBERS
-// ============================================================
-const membersGrid = document.getElementById('membersGrid');
-const memberSearch = document.getElementById('memberSearch');
-const memberCount = document.getElementById('memberCount');
-const noResults = document.getElementById('noResults');
-
-function renderMembers(list) {
-  membersGrid.innerHTML = '';
-  noResults.style.display = list.length === 0 ? 'block' : 'none';
-  memberCount.textContent = `${list.length} student${list.length !== 1 ? 's' : ''}`;
-  list.forEach((s, i) => {
-    const card = document.createElement('div');
-    card.className = 'member-card';
-    card.style.animationDelay = `${i * 0.04}s`;
-    card.innerHTML = `
-      <div class="member-avatar">${getEmoji(s.id)}</div>
-      <div class="member-name">${s.name}</div>
-      <div class="member-ht">${s.hallTicket}</div>
-      <div class="member-tagline">${s.tagline}</div>
-    `;
-    card.addEventListener('click', () => openMemberModal(s));
-    membersGrid.appendChild(card);
-  });
-}
-
-renderMembers(students);
-
-memberSearch.addEventListener('input', () => {
-  const q = memberSearch.value.toLowerCase().trim();
-  renderMembers(q ? students.filter(s => s.name.toLowerCase().includes(q)) : students);
-});
-
-// ============================================================
-// MEMBER MODAL
-// ============================================================
-const studentModal = document.getElementById('studentModal');
-const modalBox = document.getElementById('modalBox');
-const modalBackdrop = document.getElementById('modalBackdrop');
-
-function openMemberModal(s) {
-  modalBox.innerHTML = `
-    <button class="modal-close" id="modalClose">✕</button>
-    <div class="modal-avatar">${getEmoji(s.id)}</div>
-    <div class="modal-name">${s.name}</div>
-    <div class="modal-ht">${s.hallTicket}</div>
-    <div class="modal-divider"></div>
-    <div class="modal-field">
-      <div class="modal-field-label">Batch</div>
-      <div class="modal-field-value">ASRA CSE 2022–2026</div>
-    </div>
-    <div class="modal-field">
-      <div class="modal-field-label">Tagline</div>
-      <div class="modal-field-value" style="font-style:italic;color:var(--muted)">${s.tagline}</div>
-    </div>
-  `;
-  studentModal.classList.add('active');
-  document.body.style.overflow = 'hidden';
-  document.getElementById('modalClose').addEventListener('click', closeMemberModal);
-}
-
-function closeMemberModal() {
-  studentModal.classList.remove('active');
-  document.body.style.overflow = '';
-}
-
-modalBackdrop.addEventListener('click', closeMemberModal);
-
-// ============================================================
-// GALLERY LIGHTBOX
-// ============================================================
-const galleryPhotos = [
-  { src: "https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM.jpeg", caption: "Avanthi's College — Our Batch ❤️" },
+// ── Static gallery photos ──────────────────────────────────────────────────────
+const staticPhotos = [
+  { src: "https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM.jpeg",       caption: "Avanthi's College — Our Batch ❤️" },
   { src: "https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.07%20PM%20(1).jpeg", caption: "Trip Vibes 🔥" },
-  { src: "https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM.jpeg", caption: "Night Out 🌙" },
+  { src: "https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM.jpeg",       caption: "Night Out 🌙" },
   { src: "https://raw.githubusercontent.com/eswar235/asra-22-26/main/images/WhatsApp%20Image%202026-03-30%20at%208.46.08%20PM%20(1).jpeg", caption: "Campus Days ☀️" }
 ];
 
-const lightbox = document.getElementById('lightbox');
-const lbContent = document.getElementById('lbContent');
-const lbCaption = document.getElementById('lbCaption');
-const lbBackdrop = document.getElementById('lbBackdrop');
-let lbCurrent = 0;
+// ── Emoji avatars pool ─────────────────────────────────────────────────────────
+const avatarEmojis = ["🧑‍💻","👩‍💻","🎓","🌟","🚀","💡","🔥","🎯","💎","🌈","⚡","🦋","🌺","🏆","🎨","🌙","☀️","🌊","🎵","💫"];
 
-function openLightbox(idx) {
-  lbCurrent = idx;
-  showLbPhoto();
-  lightbox.classList.add('active');
-  document.body.style.overflow = 'hidden';
+// ── Navbar scroll ──────────────────────────────────────────────────────────────
+const navbar = document.getElementById("navbar");
+window.addEventListener("scroll", () => {
+  navbar.classList.toggle("scrolled", window.scrollY > 60);
+});
+
+// ── Mobile nav toggle ──────────────────────────────────────────────────────────
+const navToggle = document.getElementById("navToggle");
+const navLinks  = document.getElementById("navLinks");
+navToggle.addEventListener("click", () => navLinks.classList.toggle("open"));
+navLinks.querySelectorAll("a").forEach(a => a.addEventListener("click", () => navLinks.classList.remove("open")));
+
+// ── Hero slideshow ─────────────────────────────────────────────────────────────
+(function initSlideshow() {
+  const slides = document.querySelectorAll(".hero-slide");
+  let current = 0;
+  setInterval(() => {
+    slides[current].classList.remove("active");
+    current = (current + 1) % slides.length;
+    slides[current].classList.add("active");
+  }, 4000);
+})();
+
+// ── Typing animation ───────────────────────────────────────────────────────────
+(function initTyping() {
+  const phrases = [
+    "Four years. One family. Forever. 💜",
+    "From strangers to siblings. 🤝",
+    "We didn't just earn a degree — we built each other. 🎓",
+    "ASRA CSE 2022–2026 — Always in our hearts. ❤️",
+    "The journey ends. The memories never do. 🌟"
+  ];
+  const el = document.getElementById("typingText");
+  let pi = 0, ci = 0, deleting = false;
+  function tick() {
+    const phrase = phrases[pi];
+    if (!deleting) {
+      el.textContent = phrase.slice(0, ++ci);
+      if (ci === phrase.length) { deleting = true; setTimeout(tick, 2200); return; }
+    } else {
+      el.textContent = phrase.slice(0, --ci);
+      if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; }
+    }
+    setTimeout(tick, deleting ? 40 : 80);
+  }
+  tick();
+})();
+
+// ── Music toggle ───────────────────────────────────────────────────────────────
+(function initMusic() {
+  const btn   = document.getElementById("musicBtn");
+  const audio = document.getElementById("bgMusic");
+  btn.addEventListener("click", () => {
+    if (audio.paused) { audio.play(); btn.classList.add("playing"); btn.textContent = "🎶"; }
+    else              { audio.pause(); btn.classList.remove("playing"); btn.textContent = "🎵"; }
+  });
+})();
+
+// ── Scroll reveal ──────────────────────────────────────────────────────────────
+(function initReveal() {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("revealed"); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".reveal-up,.reveal-left,.reveal-right").forEach(el => io.observe(el));
+})();
+
+// ── Batch members grid ─────────────────────────────────────────────────────────
+(function initMembers() {
+  const grid    = document.getElementById("membersGrid");
+  const search  = document.getElementById("memberSearch");
+  const counter = document.getElementById("memberCount");
+  const noRes   = document.getElementById("noResults");
+
+  function render(list) {
+    grid.innerHTML = "";
+    list.forEach((s, i) => {
+      const emoji = avatarEmojis[s.id % avatarEmojis.length];
+      const card  = document.createElement("div");
+      card.className = "member-card";
+      card.style.animationDelay = `${(i % 12) * 0.04}s`;
+      card.innerHTML = `
+        <div class="member-avatar">${emoji}</div>
+        <div class="member-name">${s.name}</div>
+        <div class="member-ht">${s.hallTicket}</div>
+        <div class="member-tagline">${s.tagline}</div>`;
+      card.addEventListener("click", () => openMemberModal(s, emoji));
+      grid.appendChild(card);
+    });
+    counter.textContent = `${list.length} student${list.length !== 1 ? "s" : ""}`;
+    noRes.style.display = list.length ? "none" : "block";
+  }
+
+  render(students);
+
+  search.addEventListener("input", () => {
+    const q = search.value.trim().toLowerCase();
+    render(q ? students.filter(s => s.name.toLowerCase().includes(q) || s.hallTicket.toLowerCase().includes(q)) : students);
+  });
+})();
+
+// ── Member modal ───────────────────────────────────────────────────────────────
+function openMemberModal(s, emoji) {
+  const modal = document.getElementById("memberModal");
+  const box   = document.getElementById("memberModalBox");
+  box.innerHTML = `
+    <button class="modal-close-btn" id="memberModalClose">✕</button>
+    <div class="modal-avatar">${emoji}</div>
+    <div class="modal-name">${s.name}</div>
+    <div class="modal-ht">${s.hallTicket}</div>
+    <div class="modal-divider"></div>
+    <div class="modal-field"><div class="modal-field-label">Tagline</div><div class="modal-field-value">${s.tagline}</div></div>
+    <div class="modal-field"><div class="modal-field-label">Batch</div><div class="modal-field-value">ASRA CSE 2022–2026</div></div>`;
+  modal.classList.add("active");
+  document.getElementById("memberModalClose").addEventListener("click", () => modal.classList.remove("active"));
+  document.getElementById("memberModalBackdrop").addEventListener("click", () => modal.classList.remove("active"));
 }
 
-function showLbPhoto() {
-  const p = galleryPhotos[lbCurrent];
-  lbContent.innerHTML = `<img src="${p.src}" alt="${p.caption}" />`;
-  lbCaption.textContent = p.caption;
+// ── Static gallery lightbox ────────────────────────────────────────────────────
+let lbIndex = 0;
+
+function openLightbox(index) {
+  lbIndex = index;
+  renderLightbox();
+  document.getElementById("lightbox").classList.add("active");
 }
 
-document.getElementById('lbClose').addEventListener('click', () => {
-  lightbox.classList.remove('active');
-  document.body.style.overflow = '';
-});
-lbBackdrop.addEventListener('click', () => {
-  lightbox.classList.remove('active');
-  document.body.style.overflow = '';
-});
-document.getElementById('lbPrev').addEventListener('click', () => {
-  lbCurrent = (lbCurrent - 1 + galleryPhotos.length) % galleryPhotos.length;
-  showLbPhoto();
-});
-document.getElementById('lbNext').addEventListener('click', () => {
-  lbCurrent = (lbCurrent + 1) % galleryPhotos.length;
-  showLbPhoto();
+function renderLightbox() {
+  const photo = staticPhotos[lbIndex];
+  const content = document.getElementById("lbContent");
+  content.innerHTML = `<img src="${photo.src}" alt="${photo.caption}" />`;
+  document.getElementById("lbCaption").textContent = photo.caption;
+  document.getElementById("lbDownload").onclick = () => downloadFile(photo.src, `batch-photo-${lbIndex + 1}.jpg`);
+}
+
+(function initLightbox() {
+  document.getElementById("lbClose").addEventListener("click",    () => document.getElementById("lightbox").classList.remove("active"));
+  document.getElementById("lbBackdrop").addEventListener("click", () => document.getElementById("lightbox").classList.remove("active"));
+  document.getElementById("lbPrev").addEventListener("click", () => { lbIndex = (lbIndex - 1 + staticPhotos.length) % staticPhotos.length; renderLightbox(); });
+  document.getElementById("lbNext").addEventListener("click", () => { lbIndex = (lbIndex + 1) % staticPhotos.length; renderLightbox(); });
+})();
+
+// ── Video modal ────────────────────────────────────────────────────────────────
+function openVideoModal(url, caption) {
+  const modal = document.getElementById("videoModal");
+  document.getElementById("videoModalContent").innerHTML = `<video src="${url}" controls autoplay></video>`;
+  document.getElementById("videoModalCaption").textContent = caption || "";
+  modal.classList.add("active");
+}
+
+(function initVideoModal() {
+  document.getElementById("videoModalClose").addEventListener("click",    () => closeVideoModal());
+  document.getElementById("videoModalBackdrop").addEventListener("click", () => closeVideoModal());
+})();
+
+function closeVideoModal() {
+  const modal = document.getElementById("videoModal");
+  modal.classList.remove("active");
+  document.getElementById("videoModalContent").innerHTML = "";
+}
+
+// ── Download helper ────────────────────────────────────────────────────────────
+async function downloadFile(url, filename) {
+  try {
+    const res  = await fetch(url);
+    const blob = await res.blob();
+    const a    = document.createElement("a");
+    a.href     = URL.createObjectURL(blob);
+    a.download = filename || "download";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  } catch (err) {
+    // Fallback: open in new tab
+    window.open(url, "_blank");
+  }
+}
+
+// ── Upload system ──────────────────────────────────────────────────────────────
+(function initUpload() {
+  const dropZone    = document.getElementById("dropZone");
+  const fileInput   = document.getElementById("fileInput");
+  const browseBtn   = document.getElementById("browseBtn");
+  const preview     = document.getElementById("uploadPreview");
+  const fields      = document.getElementById("uploadFields");
+  const uploadBtn   = document.getElementById("uploadBtn");
+  const cancelBtn   = document.getElementById("cancelUploadBtn");
+  const progressWrap= document.getElementById("uploadProgressWrap");
+  const progressBar = document.getElementById("uploadProgressBar");
+  const progressTxt = document.getElementById("uploadProgressText");
+  const statusEl    = document.getElementById("uploadStatus");
+
+  let selectedFile = null;
+
+  function setStatus(msg, type) {
+    statusEl.textContent = msg;
+    statusEl.className   = "upload-status " + (type || "");
+  }
+
+  function showPreview(file) {
+    selectedFile = file;
+    preview.style.display = "flex";
+    fields.style.display  = "flex";
+    preview.innerHTML = "";
+    if (file.type.startsWith("image/")) {
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(file);
+      preview.appendChild(img);
+    } else {
+      const vid = document.createElement("video");
+      vid.src = URL.createObjectURL(file);
+      vid.controls = true;
+      preview.appendChild(vid);
+    }
+    dropZone.style.display = "none";
+    setStatus("");
+  }
+
+  function validateFile(file) {
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      setStatus("❌ Only images and videos are allowed.", "error"); return false;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      setStatus("❌ File too large. Max 50MB.", "error"); return false;
+    }
+    return true;
+  }
+
+  function resetUpload() {
+    selectedFile = null;
+    preview.style.display = "none";
+    fields.style.display  = "none";
+    progressWrap.style.display = "none";
+    dropZone.style.display = "block";
+    fileInput.value = "";
+    document.getElementById("uploaderName").value  = "";
+    document.getElementById("uploadCaption").value = "";
+    progressBar.style.width = "0%";
+    setStatus("");
+  }
+
+  browseBtn.addEventListener("click", () => fileInput.click());
+  dropZone.addEventListener("click",  (e) => { if (e.target !== browseBtn) fileInput.click(); });
+
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (file && validateFile(file)) showPreview(file);
+  });
+
+  dropZone.addEventListener("dragover",  (e) => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+  dropZone.addEventListener("dragleave", ()  => dropZone.classList.remove("drag-over"));
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file && validateFile(file)) showPreview(file);
+  });
+
+  cancelBtn.addEventListener("click", resetUpload);
+
+  uploadBtn.addEventListener("click", async () => {
+    if (!selectedFile) return;
+    const name    = document.getElementById("uploaderName").value.trim()  || "Anonymous";
+    const caption = document.getElementById("uploadCaption").value.trim() || "";
+    const ts      = Date.now();
+    const path    = `gallery/${ts}_${selectedFile.name}`;
+    const ref     = storageRef(storage, path);
+    const task    = uploadBytesResumable(ref, selectedFile);
+
+    uploadBtn.disabled = true;
+    cancelBtn.disabled = true;
+    progressWrap.style.display = "block";
+    setStatus("");
+
+    task.on("state_changed",
+      (snap) => {
+        const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+        progressBar.style.width = pct + "%";
+        progressTxt.textContent = `Uploading... ${pct}%`;
+      },
+      (err) => {
+        setStatus("❌ Upload failed: " + err.message, "error");
+        uploadBtn.disabled = false;
+        cancelBtn.disabled = false;
+        progressWrap.style.display = "none";
+      },
+      async () => {
+        const url  = await getDownloadURL(task.snapshot.ref);
+        const type = selectedFile.type.startsWith("image/") ? "image" : "video";
+        await addDoc(collection(db, "gallery"), {
+          url,
+          type,
+          name: selectedFile.name,
+          caption,
+          uploaderName: name,
+          storagePath: path,
+          timestamp: serverTimestamp()
+        });
+        setStatus("✅ Memory uploaded successfully! 🎉", "success");
+        progressTxt.textContent = "Upload complete!";
+        uploadBtn.disabled = false;
+        cancelBtn.disabled = false;
+        setTimeout(resetUpload, 2500);
+      }
+    );
+  });
+})();
+
+// ── Firebase gallery real-time listener ───────────────────────────────────────
+(function initFirebaseGallery() {
+  const grid    = document.getElementById("firebaseGallery");
+  const empty   = document.getElementById("galleryEmpty");
+  const loading = document.getElementById("galleryLoading");
+
+  const q = query(collection(db, "gallery"), orderBy("timestamp", "desc"));
+
+  onSnapshot(q, (snapshot) => {
+    loading.style.display = "none";
+    grid.innerHTML = "";
+
+    if (snapshot.empty) {
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const item = document.createElement("div");
+      item.className = "gallery-item";
+      item.dataset.type = data.type;
+
+      if (data.type === "image") {
+        item.innerHTML = `
+          <img src="${data.url}" alt="${data.caption || data.name}" loading="lazy" />
+          <div class="gallery-overlay">
+            ${data.uploaderName ? `<span class="gallery-uploader">📤 ${data.uploaderName}</span>` : ""}
+            <span class="gallery-caption">${data.caption || data.name}</span>
+            <div class="gallery-actions">
+              <button class="gallery-action-btn" data-action="download">⬇ Download</button>
+              <button class="gallery-delete-btn" data-action="delete">🗑 Delete</button>
+            </div>
+          </div>`;
+        item.addEventListener("click", (e) => {
+          if (e.target.dataset.action) return;
+          openFirebaseImageLightbox(data.url, data.caption || data.name);
+        });
+      } else {
+        item.innerHTML = `
+          <video src="${data.url}" muted preload="metadata"></video>
+          <div class="video-play-badge">▶</div>
+          <div class="gallery-overlay">
+            ${data.uploaderName ? `<span class="gallery-uploader">📤 ${data.uploaderName}</span>` : ""}
+            <span class="gallery-caption">${data.caption || data.name}</span>
+            <div class="gallery-actions">
+              <button class="gallery-action-btn" data-action="download">⬇ Download</button>
+              <button class="gallery-delete-btn" data-action="delete">🗑 Delete</button>
+            </div>
+          </div>`;
+        item.addEventListener("click", (e) => {
+          if (e.target.dataset.action) return;
+          openVideoModal(data.url, data.caption || data.name);
+        });
+      }
+
+      // Download button
+      item.querySelector("[data-action='download']").addEventListener("click", (e) => {
+        e.stopPropagation();
+        downloadFile(data.url, data.name || "download");
+      });
+
+      // Delete button
+      item.querySelector("[data-action='delete']").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (!confirm("Delete this memory? This cannot be undone.")) return;
+        try {
+          await deleteDoc(doc(db, "gallery", docSnap.id));
+          if (data.storagePath) {
+            const ref = storageRef(storage, data.storagePath);
+            await deleteObject(ref).catch(() => {});
+          }
+        } catch (err) {
+          alert("Delete failed: " + err.message);
+        }
+      });
+
+      grid.appendChild(item);
+    });
+
+    // Re-apply gallery filter
+    applyGalleryFilter(currentFilter);
+  });
+})();
+
+// ── Gallery filter tabs ────────────────────────────────────────────────────────
+let currentFilter = "all";
+
+function applyGalleryFilter(filter) {
+  currentFilter = filter;
+  document.querySelectorAll("#firebaseGallery .gallery-item").forEach(item => {
+    item.style.display = (filter === "all" || item.dataset.type === filter) ? "" : "none";
+  });
+  document.querySelectorAll("#staticGallery .gallery-item").forEach(item => {
+    item.style.display = (filter === "all" || filter === "image") ? "" : "none";
+  });
+}
+
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    applyGalleryFilter(btn.dataset.filter);
+  });
 });
 
-// expose for inline onclick
-window.openLightbox = openLightbox;
+// ── Firebase image lightbox (single image, no nav) ────────────────────────────
+function openFirebaseImageLightbox(url, caption) {
+  const lightbox = document.getElementById("lightbox");
+  document.getElementById("lbContent").innerHTML = `<img src="${url}" alt="${caption}" />`;
+  document.getElementById("lbCaption").textContent = caption;
+  document.getElementById("lbDownload").onclick = () => downloadFile(url, caption || "image");
+  // Hide nav arrows for firebase images
+  document.getElementById("lbPrev").style.display = "none";
+  document.getElementById("lbNext").style.display = "none";
+  lightbox.classList.add("active");
+}
 
-// ============================================================
-// GRADUATION POPUP + CONFETTI
-// ============================================================
-const gradModal = document.getElementById('gradModal');
-const gradBackdrop = document.getElementById('gradBackdrop');
-const canvas = document.getElementById('confettiCanvas');
-const ctx = canvas.getContext('2d');
-let confettiParticles = [], confettiRunning = false;
+// Restore nav arrows when static lightbox opens
+const _origOpenLightbox = openLightbox;
+window.openLightbox = function(index) {
+  document.getElementById("lbPrev").style.display = "";
+  document.getElementById("lbNext").style.display = "";
+  _origOpenLightbox(index);
+};
 
-document.getElementById('graduationBtn').addEventListener('click', () => {
-  gradModal.classList.add('active');
-  document.body.style.overflow = 'hidden';
-  launchConfetti();
-});
+// ── Graduation popup + confetti ────────────────────────────────────────────────
+(function initGraduation() {
+  const btn     = document.getElementById("graduationBtn");
+  const modal   = document.getElementById("gradModal");
+  const closeBtn= document.getElementById("gradClose");
+  const backdrop= document.getElementById("gradBackdrop");
 
-document.getElementById('gradClose').addEventListener('click', () => {
-  gradModal.classList.remove('active');
-  document.body.style.overflow = '';
-  stopConfetti();
-});
+  btn.addEventListener("click", () => {
+    modal.classList.add("active");
+    startConfetti();
+  });
+  closeBtn.addEventListener("click",  () => { modal.classList.remove("active"); stopConfetti(); });
+  backdrop.addEventListener("click",  () => { modal.classList.remove("active"); stopConfetti(); });
+})();
 
-gradBackdrop.addEventListener('click', () => {
-  gradModal.classList.remove('active');
-  document.body.style.overflow = '';
-  stopConfetti();
-});
+// ── Confetti ───────────────────────────────────────────────────────────────────
+let confettiRAF = null;
+const confettiCanvas = document.getElementById("confettiCanvas");
+const ctx = confettiCanvas.getContext("2d");
+let particles = [];
 
-function launchConfetti() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  confettiParticles = Array.from({ length: 150 }, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height - canvas.height,
-    w: Math.random() * 12 + 6,
-    h: Math.random() * 6 + 4,
-    color: ['#8b5cf6','#3b82f6','#ec4899','#f59e0b','#10b981','#f97316'][Math.floor(Math.random() * 6)],
-    speed: Math.random() * 3 + 2,
-    angle: Math.random() * 360,
-    spin: (Math.random() - 0.5) * 6,
-    drift: (Math.random() - 0.5) * 2
-  }));
-  confettiRunning = true;
+function resizeConfetti() {
+  confettiCanvas.width  = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeConfetti);
+resizeConfetti();
+
+function randomColor() {
+  const colors = ["#8b5cf6","#3b82f6","#ec4899","#f59e0b","#10b981","#f97316","#06b6d4"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function startConfetti() {
+  particles = [];
+  for (let i = 0; i < 160; i++) {
+    particles.push({
+      x: Math.random() * confettiCanvas.width,
+      y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+      w: Math.random() * 10 + 5,
+      h: Math.random() * 6 + 3,
+      color: randomColor(),
+      vx: (Math.random() - 0.5) * 3,
+      vy: Math.random() * 3 + 2,
+      angle: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.2
+    });
+  }
   animateConfetti();
 }
 
 function animateConfetti() {
-  if (!confettiRunning) { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  confettiParticles.forEach(p => {
-    p.y += p.speed;
-    p.x += p.drift;
-    p.angle += p.spin;
-    if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
+  ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  particles.forEach(p => {
     ctx.save();
     ctx.translate(p.x, p.y);
-    ctx.rotate(p.angle * Math.PI / 180);
+    ctx.rotate(p.angle);
     ctx.fillStyle = p.color;
     ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
     ctx.restore();
+    p.x     += p.vx;
+    p.y     += p.vy;
+    p.angle += p.spin;
+    if (p.y > confettiCanvas.height) {
+      p.y  = -10;
+      p.x  = Math.random() * confettiCanvas.width;
+    }
   });
-  requestAnimationFrame(animateConfetti);
+  confettiRAF = requestAnimationFrame(animateConfetti);
 }
 
 function stopConfetti() {
-  confettiRunning = false;
-  setTimeout(() => ctx.clearRect(0, 0, canvas.width, canvas.height), 100);
+  if (confettiRAF) { cancelAnimationFrame(confettiRAF); confettiRAF = null; }
+  ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
 }
 
-window.addEventListener('resize', () => {
-  if (confettiRunning) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+// ── Keyboard navigation ────────────────────────────────────────────────────────
+document.addEventListener("keydown", (e) => {
+  const lightbox   = document.getElementById("lightbox");
+  const memberModal= document.getElementById("memberModal");
+  const videoModal = document.getElementById("videoModal");
+  const gradModal  = document.getElementById("gradModal");
+
+  if (e.key === "Escape") {
+    if (lightbox.classList.contains("active"))    { lightbox.classList.remove("active"); }
+    if (memberModal.classList.contains("active")) { memberModal.classList.remove("active"); }
+    if (videoModal.classList.contains("active"))  { closeVideoModal(); }
+    if (gradModal.classList.contains("active"))   { gradModal.classList.remove("active"); stopConfetti(); }
+  }
+  if (lightbox.classList.contains("active")) {
+    if (e.key === "ArrowLeft")  { lbIndex = (lbIndex - 1 + staticPhotos.length) % staticPhotos.length; renderLightbox(); }
+    if (e.key === "ArrowRight") { lbIndex = (lbIndex + 1) % staticPhotos.length; renderLightbox(); }
+  }
 });
 
-// ============================================================
-// KEYBOARD NAVIGATION
-// ============================================================
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    closeMemberModal();
-    lightbox.classList.remove('active');
-    gradModal.classList.remove('active');
-    document.body.style.overflow = '';
-    stopConfetti();
-  }
-  if (lightbox.classList.contains('active')) {
-    if (e.key === 'ArrowLeft') { lbCurrent = (lbCurrent - 1 + galleryPhotos.length) % galleryPhotos.length; showLbPhoto(); }
-    if (e.key === 'ArrowRight') { lbCurrent = (lbCurrent + 1) % galleryPhotos.length; showLbPhoto(); }
-  }
-});
+// ── Expose globals ─────────────────────────────────────────────────────────────
+window.openLightbox  = openLightbox;
+window.downloadFile  = downloadFile;
