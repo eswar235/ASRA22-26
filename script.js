@@ -217,28 +217,56 @@ function openMemberModal(s, emoji) {
   document.getElementById("memberModalBackdrop").addEventListener("click", () => modal.classList.remove("active"));
 }
 
-// ── Static gallery lightbox ────────────────────────────────────────────────────
+// ── Unified lightbox ───────────────────────────────────────────────────────────
+// mode: "static" | "firebase"
+let lbMode  = "static";
 let lbIndex = 0;
+let fbLbIndexStatic = 0; // separate tracker for firebase mode
 
 function openLightbox(index) {
+  lbMode  = "static";
   lbIndex = index;
   renderLightbox();
   document.getElementById("lightbox").classList.add("active");
 }
 
 function renderLightbox() {
-  const photo = staticPhotos[lbIndex];
-  const content = document.getElementById("lbContent");
-  content.innerHTML = `<img src="${photo.src}" alt="${photo.caption}" />`;
-  document.getElementById("lbCaption").textContent = photo.caption;
-  document.getElementById("lbDownload").onclick = () => downloadFile(photo.src, `batch-photo-${lbIndex + 1}.jpg`);
+  if (lbMode === "static") {
+    const photo = staticPhotos[lbIndex];
+    document.getElementById("lbContent").innerHTML = `<img src="${photo.src}" alt="${photo.caption}" />`;
+    document.getElementById("lbCaption").textContent = photo.caption;
+    document.getElementById("lbDownload").onclick = () => downloadFile(photo.src, `batch-photo-${lbIndex + 1}.jpg`);
+  } else {
+    const item = fbImageItems[fbLbIndexStatic];
+    document.getElementById("lbContent").innerHTML = `<img src="${item.url}" alt="${item.caption}" />`;
+    document.getElementById("lbCaption").textContent = item.caption;
+    document.getElementById("lbDownload").onclick = () => downloadFile(item.url, item.caption || "image");
+  }
+}
+
+function lbPrevHandler() {
+  if (lbMode === "static") {
+    lbIndex = (lbIndex - 1 + staticPhotos.length) % staticPhotos.length;
+  } else {
+    fbLbIndexStatic = (fbLbIndexStatic - 1 + fbImageItems.length) % fbImageItems.length;
+  }
+  renderLightbox();
+}
+
+function lbNextHandler() {
+  if (lbMode === "static") {
+    lbIndex = (lbIndex + 1) % staticPhotos.length;
+  } else {
+    fbLbIndexStatic = (fbLbIndexStatic + 1) % fbImageItems.length;
+  }
+  renderLightbox();
 }
 
 (function initLightbox() {
   document.getElementById("lbClose").addEventListener("click",    () => document.getElementById("lightbox").classList.remove("active"));
   document.getElementById("lbBackdrop").addEventListener("click", () => document.getElementById("lightbox").classList.remove("active"));
-  document.getElementById("lbPrev").addEventListener("click", () => { lbIndex = (lbIndex - 1 + staticPhotos.length) % staticPhotos.length; renderLightbox(); });
-  document.getElementById("lbNext").addEventListener("click", () => { lbIndex = (lbIndex + 1) % staticPhotos.length; renderLightbox(); });
+  document.getElementById("lbPrev").addEventListener("click", lbPrevHandler);
+  document.getElementById("lbNext").addEventListener("click", lbNextHandler);
 })();
 
 // ── Video modal ────────────────────────────────────────────────────────────────
@@ -557,41 +585,15 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
 let fbLbIndex = 0;
 
 function openFirebaseImageLightbox(index) {
-  fbLbIndex = index;
-  renderFbLightbox();
-  document.getElementById("lbPrev").style.display = "";
-  document.getElementById("lbNext").style.display = "";
-  document.getElementById("lightbox").classList.add("active");
-}
-
-function renderFbLightbox() {
-  const item = fbImageItems[fbLbIndex];
-  document.getElementById("lbContent").innerHTML = `<img src="${item.url}" alt="${item.caption}" />`;
-  document.getElementById("lbCaption").textContent = item.caption;
-  document.getElementById("lbDownload").onclick = () => downloadFile(item.url, item.caption || "image");
-  // Override nav to use fb items
-  document.getElementById("lbPrev").onclick = () => {
-    fbLbIndex = (fbLbIndex - 1 + fbImageItems.length) % fbImageItems.length;
-    renderFbLightbox();
-  };
-  document.getElementById("lbNext").onclick = () => {
-    fbLbIndex = (fbLbIndex + 1) % fbImageItems.length;
-    renderFbLightbox();
-  };
-}
-
-// Restore static lightbox nav arrows and handlers
-const _origOpenLightbox = openLightbox;
-window.openLightbox = function(index) {
-  lbIndex = index;
+  lbMode = "firebase";
+  fbLbIndexStatic = index;
   renderLightbox();
-  document.getElementById("lbPrev").style.display = "";
-  document.getElementById("lbNext").style.display = "";
-  // Restore static nav handlers
-  document.getElementById("lbPrev").onclick = () => { lbIndex = (lbIndex - 1 + staticPhotos.length) % staticPhotos.length; renderLightbox(); };
-  document.getElementById("lbNext").onclick = () => { lbIndex = (lbIndex + 1) % staticPhotos.length; renderLightbox(); };
   document.getElementById("lightbox").classList.add("active");
-};
+}
+
+// expose globals
+window.openLightbox = openLightbox;
+window.downloadFile = downloadFile;
 
 // ── Graduation popup + confetti ────────────────────────────────────────────────
 (function initGraduation() {
@@ -683,8 +685,8 @@ document.addEventListener("keydown", (e) => {
     if (gradModal.classList.contains("active"))   { gradModal.classList.remove("active"); stopConfetti(); }
   }
   if (lightbox.classList.contains("active")) {
-    if (e.key === "ArrowLeft")  { lbIndex = (lbIndex - 1 + staticPhotos.length) % staticPhotos.length; renderLightbox(); }
-    if (e.key === "ArrowRight") { lbIndex = (lbIndex + 1) % staticPhotos.length; renderLightbox(); }
+    if (e.key === "ArrowLeft")  lbPrevHandler();
+    if (e.key === "ArrowRight") lbNextHandler();
   }
 });
 
