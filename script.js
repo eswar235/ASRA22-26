@@ -446,6 +446,9 @@ async function downloadFile(url, filename) {
   });
 })();
 
+// ── Firebase gallery items store (for lightbox navigation) ────────────────────
+let fbImageItems = []; // { url, caption }
+
 // ── Firebase gallery real-time listener ───────────────────────────────────────
 (function initFirebaseGallery() {
   const grid    = document.getElementById("firebaseGallery");
@@ -457,6 +460,7 @@ async function downloadFile(url, filename) {
   onSnapshot(q, (snapshot) => {
     loading.style.display = "none";
     grid.innerHTML = "";
+    fbImageItems = [];
 
     if (snapshot.empty) {
       empty.style.display = "block";
@@ -471,6 +475,9 @@ async function downloadFile(url, filename) {
       item.dataset.type = data.type;
 
       if (data.type === "image") {
+        const imgIndex = fbImageItems.length;
+        fbImageItems.push({ url: data.url, caption: data.caption || data.name || "" });
+
         item.innerHTML = `
           <img src="${data.url}" alt="${data.caption || data.name}" loading="lazy" />
           <div class="gallery-overlay">
@@ -483,7 +490,7 @@ async function downloadFile(url, filename) {
           </div>`;
         item.addEventListener("click", (e) => {
           if (e.target.dataset.action) return;
-          openFirebaseImageLightbox(data.url, data.caption || data.name);
+          openFirebaseImageLightbox(imgIndex);
         });
       } else {
         item.innerHTML = `
@@ -503,13 +510,11 @@ async function downloadFile(url, filename) {
         });
       }
 
-      // Download button
       item.querySelector("[data-action='download']").addEventListener("click", (e) => {
         e.stopPropagation();
         downloadFile(data.url, data.name || "download");
       });
 
-      // Delete button
       item.querySelector("[data-action='delete']").addEventListener("click", async (e) => {
         e.stopPropagation();
         if (!confirm("Delete this memory? This cannot be undone.")) return;
@@ -523,7 +528,6 @@ async function downloadFile(url, filename) {
       grid.appendChild(item);
     });
 
-    // Re-apply gallery filter
     applyGalleryFilter(currentFilter);
   });
 })();
@@ -549,24 +553,44 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
   });
 });
 
-// ── Firebase image lightbox (single image, no nav) ────────────────────────────
-function openFirebaseImageLightbox(url, caption) {
-  const lightbox = document.getElementById("lightbox");
-  document.getElementById("lbContent").innerHTML = `<img src="${url}" alt="${caption}" />`;
-  document.getElementById("lbCaption").textContent = caption;
-  document.getElementById("lbDownload").onclick = () => downloadFile(url, caption || "image");
-  // Hide nav arrows for firebase images
-  document.getElementById("lbPrev").style.display = "none";
-  document.getElementById("lbNext").style.display = "none";
-  lightbox.classList.add("active");
-}
+// ── Firebase image lightbox (with prev/next navigation) ───────────────────────
+let fbLbIndex = 0;
 
-// Restore nav arrows when static lightbox opens
-const _origOpenLightbox = openLightbox;
-window.openLightbox = function(index) {
+function openFirebaseImageLightbox(index) {
+  fbLbIndex = index;
+  renderFbLightbox();
   document.getElementById("lbPrev").style.display = "";
   document.getElementById("lbNext").style.display = "";
-  _origOpenLightbox(index);
+  document.getElementById("lightbox").classList.add("active");
+}
+
+function renderFbLightbox() {
+  const item = fbImageItems[fbLbIndex];
+  document.getElementById("lbContent").innerHTML = `<img src="${item.url}" alt="${item.caption}" />`;
+  document.getElementById("lbCaption").textContent = item.caption;
+  document.getElementById("lbDownload").onclick = () => downloadFile(item.url, item.caption || "image");
+  // Override nav to use fb items
+  document.getElementById("lbPrev").onclick = () => {
+    fbLbIndex = (fbLbIndex - 1 + fbImageItems.length) % fbImageItems.length;
+    renderFbLightbox();
+  };
+  document.getElementById("lbNext").onclick = () => {
+    fbLbIndex = (fbLbIndex + 1) % fbImageItems.length;
+    renderFbLightbox();
+  };
+}
+
+// Restore static lightbox nav arrows and handlers
+const _origOpenLightbox = openLightbox;
+window.openLightbox = function(index) {
+  lbIndex = index;
+  renderLightbox();
+  document.getElementById("lbPrev").style.display = "";
+  document.getElementById("lbNext").style.display = "";
+  // Restore static nav handlers
+  document.getElementById("lbPrev").onclick = () => { lbIndex = (lbIndex - 1 + staticPhotos.length) % staticPhotos.length; renderLightbox(); };
+  document.getElementById("lbNext").onclick = () => { lbIndex = (lbIndex + 1) % staticPhotos.length; renderLightbox(); };
+  document.getElementById("lightbox").classList.add("active");
 };
 
 // ── Graduation popup + confetti ────────────────────────────────────────────────
