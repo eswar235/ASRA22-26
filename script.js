@@ -149,11 +149,10 @@ navLinks.querySelectorAll("a").forEach(a => a.addEventListener("click", () => na
 
 // ── Music Player (YouTube playlist — 5 songs) ─────────────────────────────────
 const songs = [
-  { id: "uK5LolHVZ0w", name: "Nee Kannu Neeli Samudram" },
-  { id: "4OQtT1XnQuc", name: "Buttabomma" },
-  { id: "TYkHKXtN0zM", name: "Naatu Naatu" },
-  { id: "iB8g5cB8am8", name: "Kesariya" },
-  { id: "PL0ZpYcTg19EEnHeXHYBPLuQ8-AqBQXS31", name: "ASRA Playlist", isList: true }
+  { id: "uK5LolHVZ0w", name: "Song 1 🎵" },
+  { id: "TYkHKXtN0zM", name: "Song 2 🎵" },
+  { id: "iB8g5cB8am8", name: "Song 3 🎵" },
+  { id: "PL0ZpYcTg19EEnHeXHYBPLuQ8-AqBQXS31", name: "ASRA Playlist 🎶", isList: true }
 ];
 let currentSong = 0;
 let ytPlayers   = [];
