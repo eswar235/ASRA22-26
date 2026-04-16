@@ -288,3 +288,22 @@ ul{list-style:none}
   .gallery-grid{grid-template-columns:repeat(2,1fr)}
   .memories-grid{grid-template-columns:1fr}
 }
+
+/* ── Music Bar ── */
+.music-bar{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:1500;
+  display:flex;align-items:center;gap:10px;
+  background:rgba(15,15,26,0.92);backdrop-filter:blur(20px);
+  border:1px solid var(--border);border-radius:50px;
+  padding:10px 20px;box-shadow:0 8px 32px rgba(0,0,0,0.5),var(--glow);
+  min-width:280px;max-width:90vw;
+}
+.music-bar-btn{background:none;border:none;color:var(--text);font-size:18px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.music-bar-btn:hover{background:var(--surface2)}
+.music-bar-play{background:var(--grad);font-size:14px;box-shadow:0 2px 12px rgba(139,92,246,.4)}
+.music-bar-play:hover{opacity:.9;transform:scale(1.1)}
+.music-bar-info{display:flex;align-items:center;gap:8px;flex:1;overflow:hidden}
+.music-bar-icon{font-size:16px;animation:spin 3s linear infinite;flex-shrink:0}
+#musicSongName{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.music-bar-close{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.music-bar-close:hover{color:var(--text);background:var(--surface2)}

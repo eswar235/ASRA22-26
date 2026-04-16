@@ -50,11 +50,27 @@
     </div>
   </div>
   <div class="scroll-indicator"><div class="scroll-dot"></div><span>Scroll Down</span></div>
-  <button id="musicBtn" class="music-btn" title="Toggle Music">🎵</button>
-  <!-- YouTube audio via iframe (hidden) -->
-  <iframe id="bgMusic" width="0" height="0" style="display:none"
-    src="https://www.youtube.com/embed/uK5LolHVZ0w?enablejsapi=1&loop=1&playlist=uK5LolHVZ0w&autoplay=0"
-    allow="autoplay" frameborder="0"></iframe>
+  <button id="musicBtn" class="music-btn" title="Open Music Player">🎵</button>
+  <!-- YouTube audio player (hidden iframes) -->
+  <div id="musicPlayer" style="display:none">
+    <iframe id="ytPlayer0" width="0" height="0" src="https://www.youtube.com/embed/uK5LolHVZ0w?enablejsapi=1" frameborder="0" allow="autoplay"></iframe>
+    <iframe id="ytPlayer1" width="0" height="0" src="https://www.youtube.com/embed/4OQtT1XnQuc?enablejsapi=1" frameborder="0" allow="autoplay"></iframe>
+    <iframe id="ytPlayer2" width="0" height="0" src="https://www.youtube.com/embed/TYkHKXtN0zM?enablejsapi=1" frameborder="0" allow="autoplay"></iframe>
+    <iframe id="ytPlayer3" width="0" height="0" src="https://www.youtube.com/embed/iB8g5cB8am8?enablejsapi=1" frameborder="0" allow="autoplay"></iframe>
+    <iframe id="ytPlayer4" width="0" height="0" src="https://www.youtube.com/embed/videoseries?list=PL0ZpYcTg19EEnHeXHYBPLuQ8-AqBQXS31&enablejsapi=1" frameborder="0" allow="autoplay"></iframe>
+  </div>
+
+  <!-- Music control bar -->
+  <div id="musicBar" class="music-bar" style="display:none">
+    <button class="music-bar-btn" id="musicPrevBtn" title="Previous">⏮</button>
+    <button class="music-bar-btn music-bar-play" id="musicPlayBtn" title="Play/Pause">▶</button>
+    <button class="music-bar-btn" id="musicNextBtn" title="Next">⏭</button>
+    <div class="music-bar-info">
+      <span class="music-bar-icon">🎵</span>
+      <span id="musicSongName">Song 1</span>
+    </div>
+    <button class="music-bar-close" id="musicBarClose" title="Close">✕</button>
+  </div>
 </section>
 
 <!-- ===== ABOUT ===== -->

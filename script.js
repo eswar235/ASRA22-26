@@ -147,38 +147,108 @@ navLinks.querySelectorAll("a").forEach(a => a.addEventListener("click", () => na
   tick();
 })();
 
-// ── Music toggle (YouTube iframe via postMessage) ──────────────────────────────
+// ── Music Player (YouTube playlist — 5 songs) ─────────────────────────────────
+const songs = [
+  { id: "uK5LolHVZ0w", name: "Nee Kannu Neeli Samudram" },
+  { id: "4OQtT1XnQuc", name: "Buttabomma" },
+  { id: "TYkHKXtN0zM", name: "Naatu Naatu" },
+  { id: "iB8g5cB8am8", name: "Kesariya" },
+  { id: "PL0ZpYcTg19EEnHeXHYBPLuQ8-AqBQXS31", name: "ASRA Playlist", isList: true }
+];
+let currentSong = 0;
+let ytPlayers   = [];
+let musicPlaying = false;
+
+// Expose music controls globally so slideshow can trigger them
+window.musicAPI = {
+  play()  { playSong(); },
+  pause() { pauseSong(); },
+  isPlaying() { return musicPlaying; }
+};
+
+function playSong() {
+  if (!ytPlayers[currentSong]) return;
+  stopAllSongs();
+  try {
+    ytPlayers[currentSong].playVideo();
+    musicPlaying = true;
+    const playBtn = document.getElementById("musicPlayBtn");
+    const songNameEl = document.getElementById("musicSongName");
+    const musicBtn = document.getElementById("musicBtn");
+    const musicBar = document.getElementById("musicBar");
+    if (playBtn) playBtn.textContent = "⏸";
+    if (songNameEl) songNameEl.textContent = songs[currentSong].name + " 🎵";
+    if (musicBtn) { musicBtn.classList.add("playing"); musicBtn.textContent = "🎶"; }
+    if (musicBar) musicBar.style.display = "flex";
+  } catch(e) {}
+}
+
+function pauseSong() {
+  if (!ytPlayers[currentSong]) return;
+  try {
+    ytPlayers[currentSong].pauseVideo();
+    musicPlaying = false;
+    const playBtn = document.getElementById("musicPlayBtn");
+    const musicBtn = document.getElementById("musicBtn");
+    if (playBtn) playBtn.textContent = "▶";
+    if (musicBtn) musicBtn.classList.remove("playing");
+  } catch(e) {}
+}
+
+function stopAllSongs() {
+  ytPlayers.forEach(p => { try { p.stopVideo(); } catch(e) {} });
+}
+
+function nextSong() { currentSong = (currentSong + 1) % songs.length; playSong(); }
+function prevSong() { currentSong = (currentSong - 1 + songs.length) % songs.length; playSong(); }
+
 (function initMusic() {
-  const btn    = document.getElementById("musicBtn");
-  const iframe = document.getElementById("bgMusic");
-  let playing  = false;
+  const musicBtn = document.getElementById("musicBtn");
+  const musicBar = document.getElementById("musicBar");
+  const playBtn  = document.getElementById("musicPlayBtn");
+  const prevBtn  = document.getElementById("musicPrevBtn");
+  const nextBtn  = document.getElementById("musicNextBtn");
+  const closeBtn = document.getElementById("musicBarClose");
 
   // Load YouTube IFrame API
   const tag = document.createElement("script");
   tag.src = "https://www.youtube.com/iframe_api";
   document.head.appendChild(tag);
 
-  let player = null;
   window.onYouTubeIframeAPIReady = function() {
-    player = new YT.Player("bgMusic", {
-      events: {
-        onReady: () => {} // ready but not autoplay
-      }
+    songs.forEach((song, i) => {
+      const iframe = document.getElementById("ytPlayer" + i);
+      if (!iframe) return;
+      ytPlayers[i] = new YT.Player(iframe, {
+        events: {
+          onStateChange: (e) => {
+            if (e.data === YT.PlayerState.ENDED) nextSong();
+          }
+        }
+      });
     });
   };
 
-  btn.addEventListener("click", () => {
-    if (!player) return;
-    if (playing) {
-      player.pauseVideo();
-      btn.classList.remove("playing");
-      btn.textContent = "�";
-    } else {
-      player.playVideo();
-      btn.classList.add("playing");
-      btn.textContent = "�";
-    }
-    playing = !playing;
+  musicBtn.addEventListener("click", () => {
+    musicBar.style.display = "flex";
+    musicBtn.style.display = "none";
+    if (!musicPlaying) playSong();
+  });
+
+  playBtn.addEventListener("click", () => {
+    musicPlaying ? pauseSong() : playSong();
+  });
+
+  nextBtn.addEventListener("click", nextSong);
+  prevBtn.addEventListener("click", prevSong);
+
+  closeBtn.addEventListener("click", () => {
+    stopAllSongs();
+    musicPlaying = false;
+    musicBar.style.display = "none";
+    musicBtn.style.display = "flex";
+    musicBtn.classList.remove("playing");
+    musicBtn.textContent = "🎵";
   });
 })();
 
@@ -295,12 +365,16 @@ function startAutoSlide() {
   btn.textContent = "⏸ Stop Slide";
   btn.classList.add("active");
   lbAutoInterval = setInterval(() => lbNextHandler(), 3000);
+  // Auto-start music when slideshow begins
+  if (window.musicAPI && !window.musicAPI.isPlaying()) window.musicAPI.play();
 }
 
 function stopAutoSlide() {
   if (lbAutoInterval) { clearInterval(lbAutoInterval); lbAutoInterval = null; }
   const btn = document.getElementById("lbAutoBtn");
   if (btn) { btn.textContent = "▶ Auto Slide"; btn.classList.remove("active"); }
+  // Pause music when slideshow stops
+  if (window.musicAPI && window.musicAPI.isPlaying()) window.musicAPI.pause();
 }
 
 (function initLightbox() {
